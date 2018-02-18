@@ -46,7 +46,7 @@ class test implements CRUD {
                         'client_id'     => "consumer key",
                         'client_secret' => "consumer secret key",
                         'username'      => "username",
-                        'password'      => "actuall password" . "account token"
+                        'password'      => "actual password" . "account token"
                     )
                 )
             )

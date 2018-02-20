@@ -44,9 +44,9 @@ class test implements CRUD {
                     array(
                         'grant_type'    => "password",
                         'client_id'     => "consumer key",
-                        'client_secret' => "consumer secret key",
+                        'client_secret' => "consumer secret",
                         'username'      => "username",
-                        'password'      => "actual password" . "account token"
+                        'password'      => "user password" . "user token"
                     )
                 )
             )
@@ -64,10 +64,11 @@ class test implements CRUD {
         );
     }
 	
+	
 	// Function to show what accounts are in the Accounts sObject currently
 	function show_accounts($instance_url, $access_token) {
 
-	    $query = "SELECT Name, Id from Account LIMIT 100";
+	    $query = "SELECT Name, Id, CreatedDate from Account LIMIT 100";
 	    $url = "$instance_url/services/data/v20.0/query?q=" . urlencode($query);
 
 	    $curl = curl_init($url);
@@ -82,16 +83,42 @@ class test implements CRUD {
 
 	    echo "$total_size record(s) returned<br/><br/>";
 	    foreach ((array) $response['records'] as $record) {
-	        echo $record['Id'] . ", " . $record['Name'] . "<br/>";
+	        echo $record['Id'] . ", " . $record['Name'] . $record['CreatedDate'] . "<br/>";
 	    }
 	    echo "<br/>";
 
-}
+	}
 
+	
 	// Get an array of string dates between 2 dates
-	public function getBetweenDates(string $start, string $end) {
+	function getBetweenDates($start, $end) {
+				
+		$startD = $start[0];
+		$instance_url = $start[1]; 
+		$access_token = $start[2];
+	
+	    $query = "SELECT Name, Id , CreatedDate FROM Account WHERE CreatedDate >= $startD AND CreatedDate <= $end Limit 100";
+	    $url = "$instance_url/services/data/v20.0/query?q=" . urlencode($query);
+
+	    $curl = curl_init($url);
+	    curl_setopt($curl, CURLOPT_HEADER, false);
+	    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	    curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: OAuth $access_token"));
+
+	    $json_response = curl_exec($curl);
+	    curl_close($curl);
+	    $response = json_decode($json_response, true);
+		//print_r($response); for code testing to see errors in query
+
+		$total_size = $response['totalSize'];
+	    echo "$total_size record(s) returned<br/><br/>";
+	    foreach ((array) $response['records'] as $record) {
+	        echo $record['Id'] . ", " . $record['Name'] . $record['CreatedDate'] . "<br/>";
+	    }
+	    echo "<br/>";
 		
-		// Still in progress
+		
+		$array = $response; 
 		return $array;
 	}
 		
@@ -126,7 +153,7 @@ class test implements CRUD {
     return $id;
 	}
 
-		// Function to update the already existing account
+	// Function to update the already existing account
 	function update($id, $attributes) {
 		
 		$phone = $attributes[0];
@@ -185,6 +212,12 @@ class test implements CRUD {
 			
 			// Call function to show current accounts in Account sObject
 			$test->show_accounts($instance_url, $access_token);
+			
+			// Set up attributes to pass into getBetweenDates method
+			$start = ["2018-02-19T23:22:39.000+0000", $instance_url, $access_token];
+			$end = "2018-02-19T23:28:52.000+0000";
+			$test->getBetweenDates($start, $end);
+			
 			
 			// Set attributes to pass into create method
 			$name = "Fallout Store";
